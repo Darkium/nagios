@@ -63,7 +63,7 @@ when :cgi
 when :php
   include_recipe "php::fpm"
   url = "nagios"
-  node['nagios']['server']['php_socket'] = "/tmp/#{url}.sock"
+  node.set['nagios']['server']['php_socket'] = "/tmp/#{url}.sock"
   php_fpm url do
     action :add
     user www-data
