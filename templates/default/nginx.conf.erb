@@ -40,6 +40,8 @@ server {
     fastcgi_pass  <%= @phpcgi_socket %>;
     fastcgi_index index.php;
     fastcgi_param SCRIPT_FILENAME <%= @docroot %>$fastcgi_script_name;
+    include fastcgi_params;
+
     fastcgi_param AUTH_USER $remote_user;
     fastcgi_param REMOTE_USER $remote_user;    
   }

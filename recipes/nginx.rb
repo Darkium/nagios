@@ -49,43 +49,37 @@ else
   public_domain = node['domain']
 end
 
-case dispatch_type = node['nagios']['server']['nginx_dispatch'].to_sym
-when :cgi
-  package "spawn-fcgi"
-  package "fcgiwrap"
-  
-  service "fcgiwrap" do
-    enabled true
-    running true
-    supports :restart => true
-    action [:enable, :start]
-  end  
-when :php
-  include_recipe "php::fpm"
-  url = "nagios"
-  node.set['nagios']['server']['php_socket'] = "/tmp/#{url}.sock"
-  php_fpm url do
-    action :add
-    user www-data
-    group www-data
-    socket true
-    socket_path node['nagios']['server']['php_socket'] 
-    socket_perms "0666"
-    start_servers 2
-    min_spare_servers 2
-    max_spare_servers 8
-    max_children 8
-    terminate_timeout(node.php.ini_settings.max_execution_time.to_i + 20)
-    value_overrides(
-      :error_log => "#{node.php.fpm_log_dir}/#{url}.log"
-    )
-  end  
-when :both
-  node.set["nginx_simplecgi"]["php"] = true
-  node.set["nginx_simplecgi"]["cgi"] = true
-else
-  Chef::Log.warn "NAGIOS: NGINX setup does not have a dispatcher provided"
-end
+dispatch_type = node['nagios']['server']['nginx_dispatch'].to_sym
+
+package "spawn-fcgi"
+package "fcgiwrap"
+
+service "fcgiwrap" do
+  enabled true
+  running true
+  supports :restart => true
+  action [:enable, :start]
+end  
+
+include_recipe "php::fpm"
+url = "nagios"
+php_socket = "/tmp/#{url}.sock"
+php_fpm url do
+  action :add
+  user node['nagios']['user']
+  group node['nagios']['group']
+  socket true
+  socket_path php_socket 
+  socket_perms "0666"
+  start_servers 2
+  min_spare_servers 2
+  max_spare_servers 8
+  max_children 8
+  terminate_timeout(node.php.ini_settings.max_execution_time.to_i + 20)
+  value_overrides(
+    :error_log => "#{node.php.fpm_log_dir}/#{url}.log"
+  )
+end  
 
 template File.join(node['nginx']['dir'], 'sites-available', 'nagios3.conf') do
   source 'nginx.conf.erb'
@@ -104,7 +98,7 @@ template File.join(node['nginx']['dir'], 'sites-available', 'nagios3.conf') do
     :docroot => node['nagios']['docroot'],
     :log_dir => node['nagios']['log_dir'],
     :fqdn => node['fqdn'],
-    :phpcgi_socket => node['nagios']['server']['php_socket'],
+    :phpcgi_socket => "unix:"+php_socket,
     :fastcgi_socket => node['nagios']['server']['fastcgi_socket'],
     :nagios_url => node['nagios']['url'],
     :chef_env =>  node.chef_environment == '_default' ? 'default' : node.chef_environment,
@@ -123,4 +117,3 @@ end
 nginx_site "nagios3.conf" do
   notifies :reload, "service[nginx]"
 end
-
