@@ -20,30 +20,32 @@ server {
   ssl_prefer_server_ciphers on;
 <% end %>
 
+
 <% if @cgi %>
-<%=
-nginx_dispatch(:cgi,
-  :custom => %q(
+  location ~ ^/cgi-bin/.*\.cgi$ {
+    gzip off;
+    fastcgi_pass  <%= @fastcgi_socket %>;
+    fastcgi_index index.cgi;    
+    fastcgi_param SCRIPT_FILENAME /usr/lib$fastcgi_script_name;
+    include fastcgi_params;
+    
     fastcgi_param AUTH_USER $remote_user;
     fastcgi_param REMOTE_USER $remote_user;
-  )
-)
-%>
+  }
 <% end %>
 
 <% if @php %>
-<%=
-nginx_dispatch(:php,
-  :docroot => @docroot,
-  :custom => %q(
+  location ~ .php$ {
+    gzip off;
+    fastcgi_pass  <%= @phpcgi_socket %>;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME <%= @docroot %>$fastcgi_script_name;
     fastcgi_param AUTH_USER $remote_user;
-    fastcgi_param REMOTE_USER $remote_user;
-  )
-)
-%>
+    fastcgi_param REMOTE_USER $remote_user;    
+  }
 <% end %>
 
-  location /nagios3/stylesheets {
+  location /stylesheets {
     alias /etc/nagios3/stylesheets;
   }
 

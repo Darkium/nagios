@@ -90,3 +90,6 @@ default['nagios']['server']['web_server'] = :apache
 default['nagios']['server']['nginx_dispatch'] = :cgi
 default['nagios']['server']['stop_apache'] = false
 default['nagios']['server']['redirect_root'] = false
+
+default['nagios']['server']['phpcgi_socket'] = "unix:/var/run/php5-fpm-nagios3.sock"
+default['nagios']['server']['fastcgi_socket'] = "unix:/var/run/fcgiwrap.socket"

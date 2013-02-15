@@ -51,15 +51,37 @@ end
 
 case dispatch_type = node['nagios']['server']['nginx_dispatch'].to_sym
 when :cgi
-  node.set["nginx_simplecgi"]["cgi"] = true
-  include_recipe 'nginx_simplecgi::setup'
+  package "spawn-fcgi"
+  package "fcgiwrap"
+  
+  service "fcgiwrap" do
+    enabled true
+    running true
+    supports :restart => true
+    action [:enable, :start]
+  end  
 when :php
-  node.set["nginx_simplecgi"]["php"] = true
-  include_recipe 'nginx_simplecgi::setup'
+  include_recipe "php::fpm"
+  url = "nagios"
+  php_fpm url do
+    action :add
+    user www-data
+    group www-data
+    socket true
+    socket_path node['nagios']['server']['phpcgi_socket'].to_sym 
+    socket_perms "0666"
+    start_servers 2
+    min_spare_servers 2
+    max_spare_servers 8
+    max_children 8
+    terminate_timeout(node.php.ini_settings.max_execution_time.to_i + 20)
+    value_overrides(
+      :error_log => "#{node.php.fpm_log_dir}/#{url}.log"
+    )
+  end  
 when :both
   node.set["nginx_simplecgi"]["php"] = true
   node.set["nginx_simplecgi"]["cgi"] = true
-  include_recipe 'nginx_simplecgi::setup'
 else
   Chef::Log.warn "NAGIOS: NGINX setup does not have a dispatcher provided"
 end
@@ -81,6 +103,8 @@ template File.join(node['nginx']['dir'], 'sites-available', 'nagios3.conf') do
     :docroot => node['nagios']['docroot'],
     :log_dir => node['nagios']['log_dir'],
     :fqdn => node['fqdn'],
+    :phpcgi_socket => node['nagios']['server']['phpcgi_socket'],
+    :fastcgi_socket => node['nagios']['server']['fastcgi_socket'],
     :nagios_url => node['nagios']['url'],
     :chef_env =>  node.chef_environment == '_default' ? 'default' : node.chef_environment,
     :htpasswd_file => File.join(
