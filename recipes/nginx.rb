@@ -63,12 +63,13 @@ when :cgi
 when :php
   include_recipe "php::fpm"
   url = "nagios"
+  fpm_socket = "/tmp/#{url}.sock"
   php_fpm url do
     action :add
     user www-data
     group www-data
     socket true
-    socket_path node['nagios']['server']['phpcgi_socket'].to_sym 
+    socket_path fpm_socket 
     socket_perms "0666"
     start_servers 2
     min_spare_servers 2
@@ -103,7 +104,7 @@ template File.join(node['nginx']['dir'], 'sites-available', 'nagios3.conf') do
     :docroot => node['nagios']['docroot'],
     :log_dir => node['nagios']['log_dir'],
     :fqdn => node['fqdn'],
-    :phpcgi_socket => node['nagios']['server']['phpcgi_socket'],
+    :phpcgi_socket => fpm_socket,
     :fastcgi_socket => node['nagios']['server']['fastcgi_socket'],
     :nagios_url => node['nagios']['url'],
     :chef_env =>  node.chef_environment == '_default' ? 'default' : node.chef_environment,
