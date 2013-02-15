@@ -51,6 +51,10 @@ server {
     alias /etc/nagios3/stylesheets;
   }
 
+  location /nagios3/stylesheets {
+    alias /etc/nagios3/stylesheets;
+  }
+
   location /nagios3 {
     alias <%= @docroot %>;
   }
