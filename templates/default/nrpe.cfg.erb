@@ -19,3 +19,5 @@ command[check_smtp]=<%= node['nagios']['plugin_dir'] %>/check_smtp -H <%= node['
 <% unless node['mysql'].nil? -%>
 command[check_mysql_server]=<%= node['nagios']['plugin_dir'] %>/check_mysql -H localhost -u debian-sys-maint -p <%= node['mysql']['server_debian_password'] %>
 <% end -%>
+# Custom commands
+command[check_http]=<%= node['nagios']['plugin_dir'] %>/check_http -w 5 -c 10 -H <%= node['nagios']['checks']['http_host'] %>
