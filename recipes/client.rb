@@ -23,7 +23,7 @@
 #
 
 # determine hosts that NRPE will allow monitoring from
-mon_host = node['nagios']['server_role']['mon_hosts'].split(",")
+mon_host = node['nagios']['mon_servers'].split(",")
 
 if node.run_list.roles.include?(node['nagios']['server_role'])
   mon_host << node['ipaddress']
