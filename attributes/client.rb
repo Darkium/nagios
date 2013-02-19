@@ -70,5 +70,4 @@ default['nagios']['checks']['smtp_host'] = String.new
 
 default['nagios']['server_role'] = 'monitoring'
 
-default['nagios']['checks']['http_host'] = 'google.com'
 default['nagios']['mon_servers'] = '127.0.0.1'
