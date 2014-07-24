@@ -98,9 +98,9 @@ nodes.sort! {|a,b| a.name <=> b.name }
 # maps nodes into nagios hostgroups
 service_hosts= Hash.new
 search(:role, "*:*") do |r|
-  hostgroups << r.name
-  nodes.select {|n| n['roles'].include?(r.name) }.each do |n|
-    service_hosts[r.name] = n[node['nagios']['host_name_attribute']]
+  hostgroups << r['name']
+  nodes.select {|n| n['roles'].include?(r['name']) }.each do |n|
+    service_hosts[r['name']] = n[node['nagios']['host_name_attribute']]
   end
 end
 
